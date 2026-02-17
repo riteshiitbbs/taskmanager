@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import TasksPage from './components/TasksPage';
 import SettingsPage from './components/SettingsPage';
 import { mockTasks } from './data/mockData';
+import ProtectedRoute from './rbac/ProtectedRoute';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -34,23 +35,29 @@ const App = () => {
         setCurrentUser={setCurrentUser}
       />
       {currentPage === 'dashboard' && (
-        <Dashboard 
-          currentUser={currentUser} 
-          tasks={tasks} 
-        />
+        <ProtectedRoute entity="dashboard" action="read">
+          <Dashboard
+            currentUser={currentUser}
+            tasks={tasks}
+          />
+        </ProtectedRoute>
       )}
       {currentPage === 'tasks' && (
-        <TasksPage 
-          tasks={tasks} 
-          setTasks={setTasks} 
-        />
+        <ProtectedRoute entity="tasks" action="read">
+          <TasksPage
+            tasks={tasks}
+            setTasks={setTasks}
+          />
+        </ProtectedRoute>
       )}
       {currentPage === 'settings' && (
-        <SettingsPage 
-          currentUser={currentUser}
-          userSettings={userSettings}
-          setUserSettings={setUserSettings}
-        />
+        <ProtectedRoute entity="settings" action="read">
+          <SettingsPage
+            currentUser={currentUser}
+            userSettings={userSettings}
+            setUserSettings={setUserSettings}
+          />
+        </ProtectedRoute>
       )}
     </div>
   );

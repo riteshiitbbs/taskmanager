@@ -1,7 +1,11 @@
 import React from 'react';
+import { usePermission } from '../rbac';
 
 const SettingsPage = ({ currentUser, userSettings, setUserSettings }) => {
+    const canWrite = usePermission('settings', 'write');
+
     const handleSettingChange = (setting, value) => {
+      if (!canWrite) return;
       setUserSettings(prev => ({
         ...prev,
         [setting]: value
@@ -64,7 +68,8 @@ const SettingsPage = ({ currentUser, userSettings, setUserSettings }) => {
                 <select
                   value={userSettings.theme}
                   onChange={(e) => handleSettingChange('theme', e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={!canWrite}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
@@ -79,9 +84,10 @@ const SettingsPage = ({ currentUser, userSettings, setUserSettings }) => {
                 </div>
                 <button
                   onClick={() => handleSettingChange('notifications', !userSettings.notifications)}
+                  disabled={!canWrite}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     userSettings.notifications ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
+                  } ${!canWrite ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -98,9 +104,10 @@ const SettingsPage = ({ currentUser, userSettings, setUserSettings }) => {
                 </div>
                 <button
                   onClick={() => handleSettingChange('emailUpdates', !userSettings.emailUpdates)}
+                  disabled={!canWrite}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     userSettings.emailUpdates ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}
+                  } ${!canWrite ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <span
                     className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${

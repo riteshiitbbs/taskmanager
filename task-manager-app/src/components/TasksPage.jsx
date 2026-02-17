@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { usePermission } from '../rbac';
+import Can from '../rbac/Can';
 
 const TasksPage = ({ tasks, setTasks }) => {
   const [filter, setFilter] = useState('all');
+  const canWrite = usePermission('tasks', 'write');
+  const canDelete = usePermission('tasks', 'delete');
   
   const filteredTasks = filter === 'all' 
     ? tasks 
@@ -19,10 +23,12 @@ const TasksPage = ({ tasks, setTasks }) => {
       <div className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-900">Tasks</h2>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Add Task</span>
-          </button>
+          <Can entity="tasks" action="write">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center space-x-2">
+              <Plus className="w-4 h-4" />
+              <span>Add Task</span>
+            </button>
+          </Can>
         </div>
         
         <div className="flex space-x-4">
@@ -67,11 +73,12 @@ const TasksPage = ({ tasks, setTasks }) => {
                   <select
                     value={task.status}
                     onChange={(e) => updateTaskStatus(task.id, e.target.value)}
+                    disabled={!canWrite}
                     className={`text-xs rounded-full px-2 py-1 border-0 ${
                       task.status === 'completed' ? 'bg-green-100 text-green-800' :
                       task.status === 'in-progress' ? 'bg-blue-100 text-blue-800' :
                       'bg-yellow-100 text-yellow-800'
-                    }`}
+                    } ${!canWrite ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   >
                     <option value="pending">Pending</option>
                     <option value="in-progress">In Progress</option>
@@ -95,12 +102,16 @@ const TasksPage = ({ tasks, setTasks }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
-                    <button className="text-indigo-600 hover:text-indigo-900">
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <Can entity="tasks" action="write">
+                      <button className="text-indigo-600 hover:text-indigo-900">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                    </Can>
+                    <Can entity="tasks" action="delete">
+                      <button className="text-red-600 hover:text-red-900">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </Can>
                   </div>
                 </td>
               </tr>

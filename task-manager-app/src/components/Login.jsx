@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
-import { mockUsers } from '../data/mockData';
+import { mockUsers, fetchUserPermissions } from '../data/rbacData';
+import { useRbacContext } from '../rbac';
 
 const Login = ({ setCurrentUser, setCurrentPage }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { initializePermissions } = useRbacContext();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
-    
-    const user = mockUsers.find(u => u.email === email && u.password === password);
-    if (user) {
-      setCurrentUser(user);
-      setCurrentPage('dashboard');
-    } else {
-      setError('Invalid email or password');
+    setLoading(true);
+
+    try {
+      const user = mockUsers.find(u => u.email === email && u.password === password);
+      if (user) {
+        // Fetch user permissions from "API"
+        const userPermissionsData = await fetchUserPermissions(user.id);
+
+        // Initialize RBAC context with permissions
+        initializePermissions(userPermissionsData);
+
+        // Set current user and navigate to dashboard
+        setCurrentUser(user);
+        setCurrentPage('dashboard');
+      } else {
+        setError('Invalid email or password');
+      }
+    } catch (err) {
+      setError('An error occurred during login. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,16 +83,19 @@ const Login = ({ setCurrentUser, setCurrentPage }) => {
           
           <button
             onClick={handleLogin}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-200"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </div>
         
         <div className="mt-6 p-4 bg-gray-50 rounded-md">
           <p className="text-sm text-gray-600 mb-2">Demo Credentials:</p>
           <p className="text-xs text-gray-500">Admin: admin@example.com / admin123</p>
+          <p className="text-xs text-gray-500">Manager: manager@example.com / manager123</p>
           <p className="text-xs text-gray-500">User: user@example.com / user123</p>
+          <p className="text-xs text-gray-500">Viewer: viewer@example.com / viewer123</p>
         </div>
       </div>
     </div>
